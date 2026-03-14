@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-body bg-cream text-mocha;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-orange text-white font-headline font-semibold px-6 py-3 rounded-xl
+           hover:bg-opacity-90 active:scale-95 transition-all duration-150 shadow-sm;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent text-mocha font-headline font-semibold px-6 py-3 rounded-xl
+           border-2 border-mocha hover:bg-mocha hover:text-cream
+           active:scale-95 transition-all duration-150;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-md p-6;
+  }
+
+  .badge-draft {
+    @apply bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-0.5 rounded-full;
+  }
+
+  .badge-submitted {
+    @apply bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full;
+  }
+
+  .badge-locked {
+    @apply bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full;
+  }
+}

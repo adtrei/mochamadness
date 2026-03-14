@@ -1,0 +1,226 @@
+Mocha Madness Brand Kit
+Brand Overview
+
+Product Name
+
+Mocha Madness
+
+Tagline
+
+Pick your winners. Track your bracket. Drink coffee.
+
+Alternate Tagline
+
+The simplest bracket challenge on the internet.
+
+Brand Personality
+
+Trait	Description
+playful	cat mascot and fun copy
+premium	clean UI and strong typography
+cozy	coffeehouse energy
+competitive	bracket analytics and leaderboard
+
+The brand should feel like:
+
+ESPN simplicity + coffeehouse warmth + startup polish
+
+Mascot
+
+Name
+
+Mocha
+
+Species
+
+Tortoiseshell cat
+
+Personality
+
+Bracket analyst and tournament commissioner.
+
+Visual traits
+
+tortoiseshell coat
+
+bright green eyes
+
+expressive face
+
+relaxed but clever demeanor
+
+Logo Concepts
+Primary Logo
+
+Mocha + basketball bracket
+
+Mocha Madness
+🐾 🏀
+
+Visual idea:
+
+Mocha sitting next to a basketball bracket board holding a pencil.
+
+Minimal Logo
+M
+🐾
+
+Or
+
+☕🏀
+Favicon
+
+Simple icon:
+
+🐾
+
+or
+
+🏀
+
+with tortoiseshell color palette.
+
+Color System
+
+Inspired by Mocha’s fur + coffee.
+
+Primary Colors
+Mocha Roast      #3B2A26
+Court Orange     #E76F2F
+Cream Foam       #F2E8DA
+Caramel Drizzle  #C98B4A
+Tortie Gold      #D7A45A
+UI Colors
+Background Light   #F7F4EF
+Background Dark    #1E1B18
+Card Background    #FFFFFF
+Border Soft        #E6DFD6
+Text Primary       #2B2B2B
+Text Secondary     #6C6C6C
+Success            #2EA44F
+Warning            #F59E0B
+Error              #E11D48
+Design Tokens (JSON)
+{
+  "colors": {
+    "mocha": "#3B2A26",
+    "orange": "#E76F2F",
+    "cream": "#F2E8DA",
+    "caramel": "#C98B4A",
+    "gold": "#D7A45A",
+    "background": "#F7F4EF",
+    "card": "#FFFFFF",
+    "text": "#2B2B2B"
+  },
+  "radius": {
+    "card": "16px",
+    "button": "12px"
+  },
+  "shadow": {
+    "card": "0 8px 20px rgba(0,0,0,0.06)"
+  }
+}
+Typography
+Headline
+
+League Spartan
+
+Used for:
+
+hero titles
+
+bracket headers
+
+leaderboard titles
+
+Body
+
+Inter
+
+Used for:
+
+UI
+
+paragraphs
+
+rules
+
+labels
+
+Typography Scale
+Hero Title      56px
+Section Title   32px
+Card Title      20px
+Body Text       16px
+Small Text      14px
+UI Component Style
+Buttons
+
+Primary
+
+background: Court Orange
+color: white
+border-radius: 12px
+padding: 12px 24px
+font-weight: 600
+
+Hover
+
+background: #D65C21
+Cards
+background: white
+border-radius: 16px
+box-shadow: soft
+padding: 24px
+Leaderboard Row
+Rank
+User
+Points
+Best Bracket
+
+Top 3 rows highlighted with gold tint.
+
+Icon Style
+
+Icons should be:
+
+rounded
+
+minimal
+
+filled
+
+slightly playful
+
+Examples
+
+🏀
+🐾
+☕
+📊
+🏆
+Mascot Art Guidelines
+
+Mocha should appear in:
+
+hero section
+
+loading states
+
+empty states
+
+success states
+
+Examples:
+
+Bracket locked
+
+Mocha blowing a referee whistle.
+
+Leaderboard
+
+Mocha holding a trophy.
+
+No brackets yet
+
+Mocha filling out a bracket sheet.

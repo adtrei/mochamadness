@@ -1,0 +1,170 @@
+--------------------------------
+NAVBAR
+--------------------------------
+
+Hero Left
+
+Mocha Madness
+Pick your winners.
+Track your bracket.
+Win the pot.
+
+[ Enter Your Bracket ]
+
+Hero Right
+
+Illustration of Mocha analyzing a bracket
+--------------------------------
+Hero Copy
+Title
+
+Mocha Madness
+
+Subtitle
+
+Pick your winners.
+Track your bracket.
+See who actually knows basketball.
+
+Description
+
+A simpler March Madness bracket challenge
+with transparent scoring and payouts.
+
+No ESPN accounts required.
+
+Primary Button
+
+Enter Your Bracket
+
+Secondary Button
+
+View Leaderboard
+
+Hero Illustration Concept
+
+Mocha sitting on a couch:
+
+laptop open
+
+bracket board visible
+
+coffee mug nearby
+
+basketball game on TV
+
+This directly references your real photos.
+
+Example Hero HTML (React-friendly)
+<section className="hero">
+
+<div className="hero-left">
+
+<h1>Mocha Madness</h1>
+
+<p>
+Pick your winners.
+Track your bracket.
+Win the pot.
+</p>
+
+<button className="primary">
+Enter Your Bracket
+</button>
+
+</div>
+
+<div className="hero-right">
+
+<img src="/assets/mocha-hero.png" />
+
+</div>
+
+</section>
+
+Repo Structure
+Recommended folder layout
+/brand
+   brand-guide.md
+   tokens.json
+
+/assets
+   logo.svg
+   favicon.svg
+
+/assets/mascot
+   mocha-hero.png
+   mocha-analyst.png
+   mocha-champion.png
+   mocha-referee.png
+
+/ui
+   colors.css
+   typography.css
+   buttons.css
+
+/pages
+   landing
+   dashboard
+   leaderboard
+
+Prompt Templates for Generating Mocha Art
+
+Use these to generate consistent mascot illustrations.
+
+Hero Illustration Prompt
+
+cute tortoiseshell cat mascot with bright green eyes sitting on a couch analyzing a basketball tournament bracket on a laptop, cozy coffeehouse aesthetic, modern startup illustration style, warm lighting, playful but clean design, vector illustration
+
+Champion Illustration Prompt
+
+tortoiseshell cat mascot holding a basketball championship trophy with confetti, bright green eyes, playful sports illustration style, clean vector art, modern brand mascot
+
+Referee Illustration Prompt
+cute tortoiseshell cat wearing basketball referee shirt blowing whistle, playful sports mascot illustration, minimal vector style
+
+Microcopy
+
+Use Mocha voice across the app.
+
+Examples:
+
+Empty bracket
+
+Even I haven't picked my winners yet.
+
+Leaderboard
+
+Current bracket genius:
+
+Bracket locked
+
+The buzzer sounded. Picks are final.
+
+Loading Screen
+
+Mocha paw animation with text:
+
+Analyzing brackets...
+Social Sharing Card
+Mocha Madness
+
+Current Leaderboard
+
+1. Adam
+2. Sarah
+3. Kevin
+
+Image: Mocha holding trophy.
+
+Future Expansion
+
+Brand can support:
+
+yearly tournament
+
+office leagues
+
+fantasy pools
+
+merch
