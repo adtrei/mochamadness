@@ -1,25 +1,31 @@
 import { useState, useMemo } from 'react'
 import { getRoundName, groupGamesByRound, groupByRegion } from '../utils/bracketUtils'
 
+// ---------------------------------------------------------------------------
 // Layout constants (px)
-const GAME_H  = 96   // height of one R64 game slot; doubles each round
-const COL_W   = 172  // width of each round column
-const LABEL_H = 28   // region label strip height
-const REGION_H = GAME_H * 8  // 768 — one region's total game height (constant across rounds)
-const TOTAL_H  = (LABEL_H + REGION_H) * 2  // 1592 — full bracket height
+// GAME_H must be tall enough to fit two 44px buttons + VS divider (~112px min)
+// ---------------------------------------------------------------------------
+const GAME_H   = 124  // height per R64 game slot; doubles each round
+const COL_W    = 176  // width of each round column
+const LABEL_H  = 24   // region name strip height
+const HDR_H    = 22   // round name header strip height
+const REGION_H = GAME_H * 8  // 992px — one region's total game height (constant across rounds)
+const HALF_H   = HDR_H + LABEL_H + REGION_H  // height of one region section inc. headers
+const TOTAL_H  = HALF_H * 2  // full bracket column height
 
-// Final Four / Championship absolute top offsets
-const FF1_TOP   = LABEL_H + REGION_H / 2 - 40          // 372
-const CHAMP_TOP = Math.round((FF1_TOP + (LABEL_H + REGION_H + LABEL_H + REGION_H / 2 - 40)) / 2)  // 770
-const FF2_TOP   = LABEL_H + REGION_H + LABEL_H + REGION_H / 2 - 40  // 1168
+// Absolute top offsets for the center column (Final Four + Championship)
+const FF1_TOP   = HDR_H + LABEL_H + REGION_H / 2 - 44
+const FF2_TOP   = HDR_H + LABEL_H + REGION_H + HDR_H + LABEL_H + REGION_H / 2 - 44
+const CHAMP_TOP = Math.round((FF1_TOP + FF2_TOP) / 2)
+
+const ROUNDS = [1, 2, 3, 4]
 
 /**
- * Derive contestants for every game slot by traversing the pick tree.
- * R64 contestants come from game.team1 / game.team2 (joined from DB).
- * R32+ contestants are whoever the user picked in the upstream feeder games.
+ * Derive contestants for every game by traversing the pick tree.
+ * R64 slots come directly from game.team1 / game.team2 (DB join).
+ * R32+ slots resolve to whoever the user picked in the upstream feeder game.
  */
 function buildContestants(games, picks) {
-  // feeders[gameId] = [feederGameId_slot1, feederGameId_slot2]
   const feeders = {}
   games.forEach(g => {
     if (!g.next_game_id) return
@@ -30,7 +36,6 @@ function buildContestants(games, picks) {
   const c = {}
   ;[...games].sort((a, b) => a.round - b.round).forEach(g => {
     if (g.team1_id) {
-      // R64: team objects come directly from DB join
       c[g.id] = { team1: g.team1, team2: g.team2 }
     } else {
       const [f1, f2] = feeders[g.id] || [null, null]
@@ -52,140 +57,142 @@ function buildContestants(games, picks) {
 // TeamBtn
 // ---------------------------------------------------------------------------
 function TeamBtn({ team, isSelected, isLocked, onClick }) {
-  // Slot not yet determined (waiting for upstream pick)
-  if (team === undefined) {
+  // Upstream pick not yet made — show placeholder
+  if (team === null) {
     return (
-      <div className="h-11 bg-gray-50 border border-dashed border-gray-200 rounded-lg flex items-center px-3">
-        <span className="text-xs text-gray-300 italic">TBD</span>
+      <div className="h-10 bg-gray-50 border border-dashed border-gray-200 rounded-lg flex items-center px-3">
+        <span className="text-xs text-gray-300 italic select-none">TBD</span>
       </div>
     )
   }
-  // Seed data missing (shouldn't normally happen)
-  if (!team) return <div className="h-11 bg-gray-100 rounded-lg" />
+  if (!team) return <div className="h-10 bg-gray-100 rounded-lg" />
 
   return (
     <button
       onClick={onClick}
       disabled={isLocked}
       className={`
-        w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all min-h-[44px]
+        w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all h-10
         flex items-center justify-between gap-2
         ${isSelected
-          ? 'bg-orange text-white shadow-md shadow-orange/20'
-          : 'bg-white hover:bg-cream border border-gray-200 text-mocha'}
-        ${isLocked ? 'cursor-default opacity-75' : 'cursor-pointer active:scale-[0.98]'}
+          ? 'bg-orange text-white shadow-sm shadow-orange/30'
+          : 'bg-white hover:bg-cream border border-gray-200 text-mocha hover:border-orange/40'}
+        ${isLocked ? 'cursor-default' : 'cursor-pointer active:scale-[0.98]'}
       `}
     >
       <span className="flex items-center gap-1.5 min-w-0">
-        {team.seed && (
+        {team.seed != null && (
           <span className={`text-xs font-bold w-5 shrink-0 ${isSelected ? 'text-white/70' : 'text-caramel'}`}>
             {team.seed}
           </span>
         )}
-        <span className="truncate">{team.name}</span>
+        <span className="truncate leading-tight">{team.name}</span>
       </span>
-      {isSelected && <span className="text-white/80 shrink-0 text-base leading-none">✓</span>}
+      {isSelected && <span className="text-white/80 shrink-0 text-sm leading-none">✓</span>}
     </button>
   )
 }
 
 // ---------------------------------------------------------------------------
-// GameSlot — single matchup card
+// GameCard — a single matchup with a subtle grouped card background
 // ---------------------------------------------------------------------------
-function GameSlot({ game, contestants, picks, isLocked, onPick, rowHeight }) {
+function GameCard({ game, contestants, picks, isLocked, onPick }) {
   if (!game) return null
   const { team1, team2 } = contestants?.[game.id] || {}
   const picked = picks[game.id]
 
-  const inner = (
-    <div className="flex flex-col gap-1 w-full">
+  return (
+    <div className="bg-white/70 rounded-xl border border-gray-200/80 shadow-sm p-1.5 w-full">
       <TeamBtn
-        team={team1}
+        team={team1 ?? null}
         isSelected={picked === team1?.id}
         isLocked={isLocked}
         onClick={() => team1 && onPick(game.id, team1.id)}
       />
-      <div className="flex items-center gap-1 px-1">
+      <div className="flex items-center gap-1 px-2" style={{ height: 14 }}>
         <div className="flex-1 border-t border-gray-100" />
-        <span className="text-[10px] text-gray-300 font-medium">vs</span>
+        <span className="text-[9px] text-gray-300 font-semibold">vs</span>
         <div className="flex-1 border-t border-gray-100" />
       </div>
       <TeamBtn
-        team={team2}
+        team={team2 ?? null}
         isSelected={picked === team2?.id}
         isLocked={isLocked}
         onClick={() => team2 && onPick(game.id, team2.id)}
       />
     </div>
   )
+}
+
+// ---------------------------------------------------------------------------
+// GameSlot — positions GameCard inside a fixed-height row for alignment
+// ---------------------------------------------------------------------------
+function GameSlot({ game, contestants, picks, isLocked, onPick, rowHeight }) {
+  if (!game) return null
 
   if (rowHeight) {
     return (
       <div className="flex items-center justify-center px-1" style={{ height: rowHeight }}>
-        {inner}
+        <GameCard game={game} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
       </div>
     )
   }
-  return <div className="px-1">{inner}</div>
+  return (
+    <div className="px-1 mb-2">
+      <GameCard game={game} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
+    </div>
+  )
 }
 
 // ---------------------------------------------------------------------------
-// HalfBracket — left (West+Midwest, flex-row) or right (East+South, flex-row-reverse)
+// HalfBracket — renders 4 round columns for two stacked regions
+// reverse=true mirrors the right side (E8 nearest center, R64 on outside)
 // ---------------------------------------------------------------------------
 function HalfBracket({ topRegion, bottomRegion, gamesByRound, contestants, picks, isLocked, onPick, reverse }) {
-  const rounds = [1, 2, 3, 4]
-
-  const cols = rounds.map(r => {
-    const rowH = GAME_H * Math.pow(2, r - 1)
-    const topGames    = (gamesByRound[r] || []).filter(g => g.region === topRegion)
-    const bottomGames = (gamesByRound[r] || []).filter(g => g.region === bottomRegion)
+  const cols = ROUNDS.map(r => {
+    const rowH      = GAME_H * Math.pow(2, r - 1)
+    const topGames  = (gamesByRound[r] || []).filter(g => g.region === topRegion)
+    const btmGames  = (gamesByRound[r] || []).filter(g => g.region === bottomRegion)
 
     return (
       <div key={r} className="flex flex-col shrink-0" style={{ width: COL_W }}>
+        {/* Round name label */}
+        <div
+          className="flex items-center justify-center border-b border-gray-200/60"
+          style={{ height: HDR_H }}
+        >
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            {getRoundName(r)}
+          </span>
+        </div>
+
         {/* Top region */}
-        <div className="flex items-end pb-0.5 px-1" style={{ height: LABEL_H }}>
-          {r === 1 && (
-            <span className="text-[11px] font-bold text-caramel uppercase tracking-wider truncate">
-              {topRegion}
-            </span>
-          )}
+        <div className="flex items-end px-2 pb-0.5" style={{ height: LABEL_H }}>
+          <span className="text-[11px] font-bold text-caramel uppercase tracking-wider truncate">
+            {topRegion}
+          </span>
         </div>
         {topGames.map(game => (
-          <GameSlot
-            key={game.id}
-            game={game}
-            contestants={contestants}
-            picks={picks}
-            isLocked={isLocked}
-            onPick={onPick}
-            rowHeight={rowH}
-          />
+          <GameSlot key={game.id} game={game} contestants={contestants} picks={picks}
+            isLocked={isLocked} onPick={onPick} rowHeight={rowH} />
         ))}
+
         {/* Bottom region */}
-        <div className="flex items-end pb-0.5 px-1" style={{ height: LABEL_H }}>
-          {r === 1 && (
-            <span className="text-[11px] font-bold text-caramel uppercase tracking-wider truncate">
-              {bottomRegion}
-            </span>
-          )}
+        <div className="flex items-end px-2 pb-0.5" style={{ height: LABEL_H }}>
+          <span className="text-[11px] font-bold text-caramel uppercase tracking-wider truncate">
+            {bottomRegion}
+          </span>
         </div>
-        {bottomGames.map(game => (
-          <GameSlot
-            key={game.id}
-            game={game}
-            contestants={contestants}
-            picks={picks}
-            isLocked={isLocked}
-            onPick={onPick}
-            rowHeight={rowH}
-          />
+        {btmGames.map(game => (
+          <GameSlot key={game.id} game={game} contestants={contestants} picks={picks}
+            isLocked={isLocked} onPick={onPick} rowHeight={rowH} />
         ))}
       </div>
     )
   })
 
   return (
-    <div className={`flex ${reverse ? 'flex-row-reverse' : 'flex-row'} shrink-0`}>
+    <div className={`flex shrink-0 ${reverse ? 'flex-row-reverse' : 'flex-row'}`}>
       {cols}
     </div>
   )
@@ -195,35 +202,34 @@ function HalfBracket({ topRegion, bottomRegion, gamesByRound, contestants, picks
 // CenterColumn — Final Four + Championship, absolutely positioned
 // ---------------------------------------------------------------------------
 function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
-  const ff = gamesByRound[5] || []
+  const ff    = gamesByRound[5] || []
   const ff1   = ff[0]
   const ff2   = ff[1]
   const champ = (gamesByRound[6] || [])[0]
 
   return (
     <div className="relative shrink-0" style={{ width: COL_W, height: TOTAL_H }}>
-      {/* Label */}
+      {/* Column header */}
       <div
-        className="absolute flex items-end pb-0.5 px-1"
-        style={{ top: 0, left: 0, right: 0, height: LABEL_H }}
+        className="flex items-center justify-center border-b border-gray-200/60"
+        style={{ height: HDR_H }}
       >
-        <span className="text-[11px] font-bold text-caramel uppercase tracking-wider w-full text-center">
-          Finals
-        </span>
+        <span className="text-[10px] font-bold text-orange uppercase tracking-wider">Finals</span>
       </div>
 
       {ff1 && (
         <div className="absolute left-0 right-0" style={{ top: FF1_TOP }}>
+          <div className="px-1 mb-1 text-center">
+            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Final Four</span>
+          </div>
           <GameSlot game={ff1} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
         </div>
       )}
 
       {champ && (
         <div className="absolute left-0 right-0" style={{ top: CHAMP_TOP }}>
-          <div className="px-1 mb-1">
-            <p className="text-[10px] font-bold text-orange uppercase tracking-wider text-center mb-1">
-              Championship
-            </p>
+          <div className="px-1 mb-1 text-center">
+            <span className="text-[9px] font-bold text-orange uppercase tracking-wider">Championship</span>
           </div>
           <GameSlot game={champ} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
         </div>
@@ -231,6 +237,9 @@ function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
 
       {ff2 && (
         <div className="absolute left-0 right-0" style={{ top: FF2_TOP }}>
+          <div className="px-1 mb-1 text-center">
+            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Final Four</span>
+          </div>
           <GameSlot game={ff2} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
         </div>
       )}
@@ -239,44 +248,62 @@ function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
 }
 
 // ---------------------------------------------------------------------------
-// DesktopBracket — ESPN-style left/center/right layout
+// DesktopBracket — full ESPN-style layout with scroll hint + fade
 // ---------------------------------------------------------------------------
 function DesktopBracket({ gamesByRound, contestants, picks, isLocked, onPick }) {
   return (
-    <div className="flex flex-row items-start overflow-x-auto pb-4" style={{ minHeight: TOTAL_H }}>
-      <HalfBracket
-        topRegion="West"
-        bottomRegion="Midwest"
-        gamesByRound={gamesByRound}
-        contestants={contestants}
-        picks={picks}
-        isLocked={isLocked}
-        onPick={onPick}
-        reverse={false}
+    <div className="relative">
+      {/* Scroll hint */}
+      <div className="flex items-center gap-2 mb-2 text-xs text-gray-400 select-none">
+        <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+        </svg>
+        <span>Scroll left &amp; right to navigate the full bracket</span>
+        <svg className="w-3.5 h-3.5 shrink-0 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
+      </div>
+
+      {/* Right-edge fade to hint at off-screen content */}
+      <div
+        className="pointer-events-none absolute top-0 right-0 bottom-0 w-20 z-10"
+        style={{ background: 'linear-gradient(to left, #F2E8DA 0%, transparent 100%)' }}
       />
-      <CenterColumn
-        gamesByRound={gamesByRound}
-        contestants={contestants}
-        picks={picks}
-        isLocked={isLocked}
-        onPick={onPick}
+      {/* Left-edge fade */}
+      <div
+        className="pointer-events-none absolute top-0 left-0 bottom-0 w-6 z-10"
+        style={{ background: 'linear-gradient(to right, #F2E8DA 0%, transparent 100%)' }}
       />
-      <HalfBracket
-        topRegion="East"
-        bottomRegion="South"
-        gamesByRound={gamesByRound}
-        contestants={contestants}
-        picks={picks}
-        isLocked={isLocked}
-        onPick={onPick}
-        reverse={true}
-      />
+
+      {/* Scrollable bracket */}
+      <div className="overflow-x-auto pb-4" style={{ scrollbarWidth: 'thin' }}>
+        <div className="flex items-start gap-3" style={{ minWidth: 'max-content' }}>
+          <HalfBracket
+            topRegion="West" bottomRegion="Midwest"
+            gamesByRound={gamesByRound} contestants={contestants}
+            picks={picks} isLocked={isLocked} onPick={onPick}
+            reverse={false}
+          />
+          <div className="shrink-0 self-stretch w-px bg-gray-200/70 mx-1" />
+          <CenterColumn
+            gamesByRound={gamesByRound} contestants={contestants}
+            picks={picks} isLocked={isLocked} onPick={onPick}
+          />
+          <div className="shrink-0 self-stretch w-px bg-gray-200/70 mx-1" />
+          <HalfBracket
+            topRegion="East" bottomRegion="South"
+            gamesByRound={gamesByRound} contestants={contestants}
+            picks={picks} isLocked={isLocked} onPick={onPick}
+            reverse={true}
+          />
+        </div>
+      </div>
     </div>
   )
 }
 
 // ---------------------------------------------------------------------------
-// PickProgress — mobile progress bar
+// PickProgress
 // ---------------------------------------------------------------------------
 function PickProgress({ picks, games }) {
   const gameIdSet = new Set(games.map(g => g.id))
@@ -301,7 +328,7 @@ function PickProgress({ picks, games }) {
 }
 
 // ---------------------------------------------------------------------------
-// MobileBracket — tab-per-round view
+// MobileBracket — tab-per-round
 // ---------------------------------------------------------------------------
 function MobileBracket({ roundNums, gamesByRound, contestants, picks, isLocked, onPick }) {
   const [activeRound, setActiveRound] = useState(0)
@@ -340,36 +367,27 @@ function MobileBracket({ roundNums, gamesByRound, contestants, picks, isLocked, 
         })}
       </div>
 
-      {/* Round header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-headline font-bold text-mocha">{getRoundName(round)}</h3>
         <span className="text-xs text-gray-400 font-medium">{roundPicksMade}/{games.length} picked</span>
       </div>
 
-      {/* Games grouped by region */}
       <div className="space-y-5">
         {Object.entries(groupByRegion(games)).map(([region, rgGames]) => (
           <div key={region}>
             {region !== 'undefined' && region !== 'Finals' && (
               <p className="text-xs font-bold text-caramel uppercase tracking-wider mb-3">{region}</p>
             )}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {rgGames.map(game => (
-                <GameSlot
-                  key={game.id}
-                  game={game}
-                  contestants={contestants}
-                  picks={picks}
-                  isLocked={isLocked}
-                  onPick={onPick}
-                />
+                <GameSlot key={game.id} game={game} contestants={contestants}
+                  picks={picks} isLocked={isLocked} onPick={onPick} />
               ))}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Prev / Next */}
       <div className="flex justify-between mt-8 gap-3">
         <button
           onClick={() => setActiveRound(prev => Math.max(0, prev - 1))}
@@ -406,9 +424,7 @@ export default function BracketBuilder({
 }) {
   const gamesByRound = groupGamesByRound(games)
   const roundNums    = Object.keys(gamesByRound).map(Number).sort((a, b) => a - b)
-
-  // Derive who plays in every slot (propagates picks into later rounds)
-  const contestants = useMemo(() => buildContestants(games, picks), [games, picks])
+  const contestants  = useMemo(() => buildContestants(games, picks), [games, picks])
 
   return (
     <div>
@@ -423,7 +439,7 @@ export default function BracketBuilder({
         </div>
       )}
 
-      {/* Desktop — ESPN-style left/right bracket */}
+      {/* Desktop */}
       <div className="hidden md:block">
         <DesktopBracket
           gamesByRound={gamesByRound}
@@ -434,7 +450,7 @@ export default function BracketBuilder({
         />
       </div>
 
-      {/* Mobile — tab per round */}
+      {/* Mobile */}
       <div className="md:hidden">
         <PickProgress picks={picks} games={games} />
         <MobileBracket
@@ -465,7 +481,6 @@ export default function BracketBuilder({
         />
       </div>
 
-      {/* Submit — only before first submission */}
       {canSubmit && (
         <div className="mt-6 flex items-center gap-4">
           <button onClick={onSubmit} className="btn-primary px-8">Submit Bracket</button>
@@ -473,7 +488,6 @@ export default function BracketBuilder({
         </div>
       )}
 
-      {/* Submitted but still editable */}
       {!isLocked && !canSubmit && (
         <div className="mt-6 text-sm text-gray-500 bg-orange/5 border border-orange/20 rounded-xl px-4 py-3">
           Your bracket is submitted. You can still edit picks until the tournament locks.
