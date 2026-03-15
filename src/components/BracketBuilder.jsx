@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { getRoundName, groupGamesByRound, groupByRegion } from '../utils/bracketUtils'
+import { getRoundName, groupGamesByRound, groupByRegion, ROUND_POINTS } from '../utils/bracketUtils'
 
 // ---------------------------------------------------------------------------
 // Layout constants (px)
@@ -54,9 +54,10 @@ function buildContestants(games, picks) {
 }
 
 // ---------------------------------------------------------------------------
-// TeamBtn
+// TeamBtn — result-aware
+// resultState: 'correct' | 'wrong' | 'eliminated' | 'unpicked-winner' | null
 // ---------------------------------------------------------------------------
-function TeamBtn({ team, isSelected, isLocked, onClick }) {
+function TeamBtn({ team, isSelected, isLocked, resultState, onClick }) {
   // Upstream pick not yet made — show placeholder
   if (team === null) {
     return (
@@ -67,47 +68,147 @@ function TeamBtn({ team, isSelected, isLocked, onClick }) {
   }
   if (!team) return <div className="h-10 bg-gray-100 rounded-lg" />
 
+  // Derive styles from resultState
+  let bg, textColor, seedColor, badge = null, extraClass = ''
+  if (resultState === 'correct') {
+    bg = 'bg-green-500'; textColor = 'text-white'; seedColor = 'text-white/70'
+    badge = <span className="shrink-0 text-white text-sm font-bold leading-none">✓</span>
+  } else if (resultState === 'wrong') {
+    bg = 'bg-red-50 border border-red-200'; textColor = 'text-red-400'; seedColor = 'text-red-300'
+    extraClass = 'line-through opacity-80'
+    badge = <span className="shrink-0 text-red-400 text-sm font-bold leading-none">✗</span>
+  } else if (resultState === 'unpicked-winner') {
+    bg = 'bg-green-50 border border-green-300'; textColor = 'text-green-800'; seedColor = 'text-green-500'
+    badge = <span className="shrink-0 text-green-500 text-xs leading-none font-semibold">WIN</span>
+  } else if (resultState === 'eliminated') {
+    bg = 'bg-gray-50 border border-gray-100'; textColor = 'text-gray-300'; seedColor = 'text-gray-200'
+    extraClass = 'opacity-60'
+  } else if (isSelected) {
+    bg = 'bg-orange shadow-sm shadow-orange/30'; textColor = 'text-white'; seedColor = 'text-white/70'
+    badge = <span className="shrink-0 text-white/80 text-sm leading-none">✓</span>
+  } else {
+    bg = 'bg-white hover:bg-cream border border-gray-200 hover:border-orange/40'
+    textColor = 'text-mocha'; seedColor = 'text-caramel'
+  }
+
+  const interactive = !isLocked && !resultState
   return (
     <button
       onClick={onClick}
-      disabled={isLocked}
+      disabled={isLocked || !!resultState}
       className={`
         w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all h-10
         flex items-center justify-between gap-2
-        ${isSelected
-          ? 'bg-orange text-white shadow-sm shadow-orange/30'
-          : 'bg-white hover:bg-cream border border-gray-200 text-mocha hover:border-orange/40'}
-        ${isLocked ? 'cursor-default' : 'cursor-pointer active:scale-[0.98]'}
+        ${bg} ${textColor}
+        ${interactive ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default'}
       `}
     >
-      <span className="flex items-center gap-1.5 min-w-0">
+      <span className={`flex items-center gap-1.5 min-w-0 ${extraClass}`}>
         {team.seed != null && (
-          <span className={`text-xs font-bold w-5 shrink-0 ${isSelected ? 'text-white/70' : 'text-caramel'}`}>
-            {team.seed}
-          </span>
+          <span className={`text-xs font-bold w-5 shrink-0 ${seedColor}`}>{team.seed}</span>
         )}
         <span className="truncate leading-tight">{team.name}</span>
       </span>
-      {isSelected && <span className="text-white/80 shrink-0 text-sm leading-none">✓</span>}
+      {badge}
     </button>
   )
 }
 
+// Determine result state for a single team button within a game
+function getResultState(team, gameWinnerId, userPickId) {
+  if (!gameWinnerId) return null  // game not decided yet
+  if (!team) return null
+  const won = team.id === gameWinnerId
+  const picked = userPickId === team.id
+  if (picked && won)  return 'correct'
+  if (picked && !won) return 'wrong'
+  if (!picked && won) return 'unpicked-winner'
+  return 'eliminated'
+}
+
 // ---------------------------------------------------------------------------
-// GameCard — a single matchup with a subtle grouped card background
+// ScoreSummary — shows current score and max possible (only once results exist)
+// ---------------------------------------------------------------------------
+function ScoreSummary({ games, picks }) {
+  const { current, maxPossible, hasResults } = useMemo(() => {
+    const eliminated = new Set()
+    games.forEach(g => {
+      if (!g.winner_id) return
+      const loserId = g.team1?.id === g.winner_id ? g.team2?.id : g.team1?.id
+      if (loserId) eliminated.add(loserId)
+    })
+
+    let current = 0, maxPossible = 0
+    games.forEach(g => {
+      const pickedId = picks[g.id]
+      const pts = ROUND_POINTS[g.round] || 0
+      if (!pickedId) return
+      if (g.winner_id) {
+        if (pickedId === g.winner_id) { current += pts; maxPossible += pts }
+        // wrong pick: pts lost
+      } else {
+        if (!eliminated.has(pickedId)) maxPossible += pts
+      }
+    })
+    const hasResults = games.some(g => g.winner_id)
+    return { current, maxPossible, hasResults }
+  }, [games, picks])
+
+  if (!hasResults) return null
+
+  const totalPossible = Object.values(ROUND_POINTS).reduce((s, p, i) => {
+    // R64=32 games, R32=16, S16=8, E8=4, FF=2, Champ=1 — points * game count
+    const counts = [32, 16, 8, 4, 2, 1]
+    return s + p * counts[i]
+  }, 0)
+
+  const pct = totalPossible > 0 ? Math.round((maxPossible / totalPossible) * 100) : 0
+
+  return (
+    <div className="flex items-center gap-4 bg-mocha/5 border border-mocha/10 rounded-xl px-4 py-3 mb-4 flex-wrap">
+      <div>
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Current Score</p>
+        <p className="font-headline font-bold text-2xl text-mocha leading-tight">{current} <span className="text-sm font-normal text-gray-400">pts</span></p>
+      </div>
+      <div className="flex-1 min-w-[80px]">
+        <div className="flex justify-between text-[11px] text-gray-400 mb-1">
+          <span>Max possible</span>
+          <span>{pct}% of total</span>
+        </div>
+        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${pct > 50 ? 'bg-green-400' : pct > 25 ? 'bg-orange' : 'bg-red-400'}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+      <div className="text-right">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Max Possible</p>
+        <p className={`font-headline font-bold text-2xl leading-tight ${pct > 50 ? 'text-green-600' : pct > 25 ? 'text-orange' : 'text-red-500'}`}>
+          {maxPossible} <span className="text-sm font-normal text-gray-400">pts</span>
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// GameCard — a single matchup with result-aware team buttons
 // ---------------------------------------------------------------------------
 function GameCard({ game, contestants, picks, isLocked, onPick }) {
   if (!game) return null
   const { team1, team2 } = contestants?.[game.id] || {}
   const picked = picks[game.id]
+  const winnerId = game.winner_id
 
   return (
     <div className="bg-white/70 rounded-xl border border-gray-200/80 shadow-sm p-1.5 w-full">
       <TeamBtn
         team={team1 ?? null}
-        isSelected={picked === team1?.id}
+        isSelected={!winnerId && picked === team1?.id}
         isLocked={isLocked}
-        onClick={() => team1 && onPick(game.id, team1.id)}
+        resultState={getResultState(team1, winnerId, picked)}
+        onClick={() => !winnerId && team1 && onPick(game.id, team1.id)}
       />
       <div className="flex items-center gap-1 px-2" style={{ height: 14 }}>
         <div className="flex-1 border-t border-gray-100" />
@@ -116,9 +217,10 @@ function GameCard({ game, contestants, picks, isLocked, onPick }) {
       </div>
       <TeamBtn
         team={team2 ?? null}
-        isSelected={picked === team2?.id}
+        isSelected={!winnerId && picked === team2?.id}
         isLocked={isLocked}
-        onClick={() => team2 && onPick(game.id, team2.id)}
+        resultState={getResultState(team2, winnerId, picked)}
+        onClick={() => !winnerId && team2 && onPick(game.id, team2.id)}
       />
     </div>
   )
@@ -438,6 +540,9 @@ export default function BracketBuilder({
           )}
         </div>
       )}
+
+      {/* Score summary — shown once tournament results start coming in */}
+      <ScoreSummary games={games} picks={picks} />
 
       {/* Desktop */}
       <div className="hidden md:block">

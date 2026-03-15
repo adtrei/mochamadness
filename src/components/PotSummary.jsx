@@ -2,9 +2,9 @@ const ENTRY_FEE = 20
 
 export default function PotSummary({ totalBrackets = 0 }) {
   const potSize = totalBrackets * ENTRY_FEE
-  const first = Math.round(potSize * 0.6)
-  const second = Math.round(potSize * 0.25)
-  const third = Math.round(potSize * 0.15)
+  const first = Math.round(potSize * 0.7)
+  const second = Math.round(potSize * 0.2)
+  const third = Math.round(potSize * 0.1)
 
   return (
     <div className="card bg-gradient-to-br from-mocha to-[#5a3f38] text-cream">
@@ -32,7 +32,7 @@ export default function PotSummary({ totalBrackets = 0 }) {
             <span className="font-bold">${third}</span>
           </div>
         </div>
-        <p className="text-cream/40 text-xs pt-1">Payouts based on total entries. 60/25/15% split.</p>
+        <p className="text-cream/40 text-xs pt-1">Payouts based on total entries. 70/20/10% split.</p>
       </div>
     </div>
   )

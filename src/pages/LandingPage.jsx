@@ -68,7 +68,7 @@ export default function LandingPage() {
             {
               icon: '🏆',
               title: `${session ? '2' : '3'}. Win the Pot`,
-              desc: 'Top 3 brackets split the pot 60/25/15%. Tiebreaker: closest championship score prediction.',
+              desc: 'Top 3 brackets split the pot 70/20/10%. Tiebreaker: closest championship score prediction.',
             },
           ].filter(Boolean).map(step => (
             <div key={step.title} className="card hover:shadow-lg transition-shadow">

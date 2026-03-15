@@ -25,6 +25,18 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6 text-sm font-medium">
           <Link to="/" className="hover:text-orange transition-colors">Home</Link>
           <Link to="/leaderboard" className="hover:text-orange transition-colors">Leaderboard</Link>
+          <a
+            href="https://www.ncaa.com/march-madness-live/scores"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-orange transition-colors flex items-center gap-1 text-cream/70 hover:text-orange"
+            title="Live game scores on NCAA.com"
+          >
+            Scores
+            <svg className="w-3 h-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
           {session ? (
             <>
               <Link to="/dashboard" className="hover:text-orange transition-colors">My Brackets</Link>
@@ -65,6 +77,18 @@ export default function Navbar() {
         <div className="md:hidden bg-mocha border-t border-white/10 px-4 pb-4 flex flex-col gap-3 text-sm font-medium">
           <Link to="/" onClick={() => setMenuOpen(false)} className="py-2 hover:text-orange">Home</Link>
           <Link to="/leaderboard" onClick={() => setMenuOpen(false)} className="py-2 hover:text-orange">Leaderboard</Link>
+          <a
+            href="https://www.ncaa.com/march-madness-live/scores"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setMenuOpen(false)}
+            className="py-2 hover:text-orange text-cream/70 flex items-center gap-1"
+          >
+            Scores
+            <svg className="w-3 h-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
           {session ? (
             <>
               <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="py-2 hover:text-orange">My Brackets</Link>

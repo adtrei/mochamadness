@@ -159,6 +159,20 @@ export default function Dashboard() {
 
             <div className="space-y-4">
               <PotSummary totalBrackets={paidCount} />
+              <a
+                href="https://www.ncaa.com/march-madness-live/scores"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between card py-3 px-4 hover:shadow-md transition-shadow group"
+              >
+                <div>
+                  <p className="font-headline font-semibold text-mocha text-sm">Live Scores</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Check game results on NCAA.com</p>
+                </div>
+                <svg className="w-4 h-4 text-orange group-hover:translate-x-0.5 transition-transform shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
               <div className="card text-sm space-y-2">
                 <p className="font-headline font-semibold text-mocha mb-1">Scoring Rules</p>
                 {[['Round of 64', 1], ['Round of 32', 2], ['Sweet 16', 4], ['Elite 8', 8], ['Final Four', 16], ['Championship', 32]].map(([r, pts]) => (

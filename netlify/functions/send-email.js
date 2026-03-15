@@ -81,9 +81,9 @@ function bracketSubmittedHtml({ firstName, bracketName }) {
 }
 
 function paymentConfirmedHtml({ firstName, bracketName, potTotal }) {
-  const first = Math.round(potTotal * 0.6)
-  const second = Math.round(potTotal * 0.25)
-  const third = Math.round(potTotal * 0.15)
+  const first = Math.round(potTotal * 0.7)
+  const second = Math.round(potTotal * 0.2)
+  const third = Math.round(potTotal * 0.1)
   return wrap(`
     ${header()}
     <tr><td style="background-color:#16a34a;padding:16px 40px;text-align:center;">
@@ -118,7 +118,7 @@ function paymentConfirmedHtml({ firstName, bracketName, potTotal }) {
               </tr></table>
             </td></tr>
           </table>
-          <p style="margin:12px 0 0;font-size:11px;color:rgba(242,232,218,0.4);">60/25/15% split · grows with every paid entry</p>
+          <p style="margin:12px 0 0;font-size:11px;color:rgba(242,232,218,0.4);">70/20/10% split · grows with every paid entry</p>
         </td></tr>
       </table>
       <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 20px;">
