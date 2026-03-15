@@ -200,18 +200,27 @@ export const handler = async (event) => {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   )
 
-  // Verify caller is an admin
+  // Verify caller has a valid session
   const { data: { user }, error: authError } = await adminClient.auth.getUser(token)
   if (authError || !user) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) }
   }
-  const { data: callerProfile } = await adminClient.from('profiles').select('is_admin').eq('id', user.id).single()
-  if (!callerProfile?.is_admin) {
-    return { statusCode: 403, body: JSON.stringify({ error: 'Forbidden' }) }
-  }
 
   const body = JSON.parse(event.body || '{}')
   const { type, to, subject, ...data } = body
+
+  // bracket-submitted: any authenticated user, but only to their own email
+  // payment-confirmed / tournament-locked: admin only
+  if (type === 'bracket-submitted') {
+    if (to !== user.email) {
+      return { statusCode: 403, body: JSON.stringify({ error: 'Can only send to your own email' }) }
+    }
+  } else {
+    const { data: callerProfile } = await adminClient.from('profiles').select('is_admin').eq('id', user.id).single()
+    if (!callerProfile?.is_admin) {
+      return { statusCode: 403, body: JSON.stringify({ error: 'Forbidden' }) }
+    }
+  }
 
   let html
   if (type === 'bracket-submitted') {
