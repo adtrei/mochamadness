@@ -72,7 +72,8 @@ export default function Dashboard() {
     setCreating(true)
     setError('')
     try {
-      const bracket = await BracketService.createBracket(session.user.id, brackets.length + 1)
+      const firstName = profile?.first_name || profile?.display_name?.split(' ')[0]
+      const bracket = await BracketService.createBracket(session.user.id, brackets.length + 1, firstName)
       navigate(`/bracket/${bracket.id}`)
     } catch (err) {
       setError(err.message)

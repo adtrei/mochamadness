@@ -68,6 +68,26 @@ function TeamBtn({ team, isSelected, isLocked, resultState, onClick }) {
   }
   if (!team) return <div className="h-10 bg-gray-100 rounded-lg" />
 
+  // First Four teams have a slash in their name (e.g. "SMU/Miami OH")
+  const isFirstFour = !resultState && !isSelected && team.name?.includes('/')
+  if (isFirstFour) {
+    return (
+      <button
+        onClick={onClick}
+        disabled={isLocked}
+        className="w-full text-left px-3 py-2 rounded-lg text-sm transition-all h-10 flex items-center justify-between gap-2 bg-white/60 hover:bg-cream border border-dashed border-caramel/50 hover:border-orange/40 text-mocha cursor-pointer active:scale-[0.98]"
+      >
+        <span className="flex items-center gap-1.5 min-w-0">
+          {team.seed != null && (
+            <span className="text-xs font-bold w-5 shrink-0 text-caramel">{team.seed}</span>
+          )}
+          <span className="truncate leading-tight italic text-xs">{team.name}</span>
+        </span>
+        <span className="shrink-0 text-[8px] font-bold text-caramel bg-caramel/10 px-1.5 py-0.5 rounded-full whitespace-nowrap">1st 4</span>
+      </button>
+    )
+  }
+
   // Derive styles from resultState
   let bg, textColor, seedColor, badge = null, extraClass = ''
   if (resultState === 'correct') {
@@ -321,8 +341,10 @@ function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
 
       {ff1 && (
         <div className="absolute left-0 right-0" style={{ top: FF1_TOP }}>
-          <div className="px-1 mb-1 text-center">
-            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Final Four</span>
+          <div className="px-1 mb-1.5 text-center">
+            <span className="inline-block text-[9px] font-bold text-caramel uppercase tracking-wider bg-mocha/5 border border-caramel/30 px-2 py-0.5 rounded-full">
+              Final Four
+            </span>
           </div>
           <GameSlot game={ff1} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
         </div>
@@ -330,8 +352,10 @@ function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
 
       {champ && (
         <div className="absolute left-0 right-0" style={{ top: CHAMP_TOP }}>
-          <div className="px-1 mb-1 text-center">
-            <span className="text-[9px] font-bold text-orange uppercase tracking-wider">Championship</span>
+          <div className="px-1 mb-1.5 text-center">
+            <span className="inline-block text-[9px] font-bold text-orange uppercase tracking-wider bg-orange/10 border border-orange/30 px-2 py-0.5 rounded-full">
+              Championship
+            </span>
           </div>
           <GameSlot game={champ} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
         </div>
@@ -339,8 +363,10 @@ function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
 
       {ff2 && (
         <div className="absolute left-0 right-0" style={{ top: FF2_TOP }}>
-          <div className="px-1 mb-1 text-center">
-            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Final Four</span>
+          <div className="px-1 mb-1.5 text-center">
+            <span className="inline-block text-[9px] font-bold text-caramel uppercase tracking-wider bg-mocha/5 border border-caramel/30 px-2 py-0.5 rounded-full">
+              Final Four
+            </span>
           </div>
           <GameSlot game={ff2} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
         </div>
@@ -355,6 +381,15 @@ function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
 function DesktopBracket({ gamesByRound, contestants, picks, isLocked, onPick }) {
   return (
     <div className="relative">
+      {/* Region orientation legend */}
+      <div className="flex items-center gap-2 mb-2 text-[10px] font-semibold select-none">
+        <span className="text-mocha/50 whitespace-nowrap">← West · Midwest</span>
+        <div className="flex-1 border-t border-gray-200 min-w-[12px]" />
+        <span className="text-orange/80 shrink-0">Finals</span>
+        <div className="flex-1 border-t border-gray-200 min-w-[12px]" />
+        <span className="text-mocha/50 whitespace-nowrap">East · South →</span>
+      </div>
+
       {/* Scroll hint */}
       <div className="flex items-center gap-2 mb-2 text-xs text-gray-400 select-none">
         <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

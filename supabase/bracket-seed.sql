@@ -173,8 +173,8 @@ INSERT INTO games (id, round, region, game_order) VALUES
 
 -- Final Four  (game_ids 61–62)
 INSERT INTO games (id, round, region, game_order) VALUES
-(61, 5, 'Final Four', 1),  -- East vs West
-(62, 5, 'Final Four', 2);  -- South vs Midwest
+(61, 5, 'Final Four', 1),  -- West vs Midwest
+(62, 5, 'Final Four', 2);  -- East vs South
 
 -- Championship  (game_id 63)
 INSERT INTO games (id, round, region, game_order) VALUES
@@ -261,11 +261,11 @@ UPDATE games SET next_game_id = 59, next_slot = 2 WHERE id = 54;
 UPDATE games SET next_game_id = 60, next_slot = 1 WHERE id = 55;
 UPDATE games SET next_game_id = 60, next_slot = 2 WHERE id = 56;
 
--- Elite 8 → Final Four
-UPDATE games SET next_game_id = 61, next_slot = 1 WHERE id = 57;  -- East champ
-UPDATE games SET next_game_id = 61, next_slot = 2 WHERE id = 58;  -- West champ
-UPDATE games SET next_game_id = 62, next_slot = 1 WHERE id = 59;  -- South champ
-UPDATE games SET next_game_id = 62, next_slot = 2 WHERE id = 60;  -- Midwest champ
+-- Elite 8 → Final Four  (West vs Midwest = FF1/game 61; East vs South = FF2/game 62)
+UPDATE games SET next_game_id = 62, next_slot = 1 WHERE id = 57;  -- East champ → FF2
+UPDATE games SET next_game_id = 61, next_slot = 2 WHERE id = 58;  -- West champ → FF1
+UPDATE games SET next_game_id = 62, next_slot = 2 WHERE id = 59;  -- South champ → FF2
+UPDATE games SET next_game_id = 61, next_slot = 1 WHERE id = 60;  -- Midwest champ → FF1
 
 -- Final Four → Championship
 UPDATE games SET next_game_id = 63, next_slot = 1 WHERE id = 61;

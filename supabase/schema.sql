@@ -97,9 +97,10 @@ create policy "Public read teams" on teams for select using (true);
 alter table games enable row level security;
 create policy "Public read games" on games for select using (true);
 
--- Brackets: users see and edit only their own; submitted ones visible to all (for leaderboard)
+-- Brackets: users manage their own; admins manage all (for payment status updates etc.)
+-- submitted/locked brackets are publicly readable for the leaderboard
 alter table brackets enable row level security;
-create policy "Users manage own brackets" on brackets for all using (auth.uid() = user_id);
+create policy "Users manage own brackets" on brackets for all using (auth.uid() = user_id OR is_admin());
 create policy "Public read submitted brackets" on brackets for select using (status in ('submitted', 'locked'));
 
 -- Bracket picks: users manage their own; submitted brackets picks visible to all

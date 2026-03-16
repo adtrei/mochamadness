@@ -21,7 +21,7 @@ export const BracketService = {
     return data
   },
 
-  async createBracket(userId, bracketNumber) {
+  async createBracket(userId, bracketNumber, firstName) {
     const { count, error: countError } = await supabase
       .from('brackets')
       .select('*', { count: 'exact', head: true })
@@ -29,11 +29,15 @@ export const BracketService = {
     if (countError) throw countError
     if (count >= 3) throw new Error('You\'ve reached the maximum of 3 brackets.')
 
+    const bracketName = firstName
+      ? `${firstName}'s Bracket ${bracketNumber}`
+      : `My Bracket ${bracketNumber}`
+
     const { data, error } = await supabase
       .from('brackets')
       .insert({
         user_id: userId,
-        name: `My Bracket ${bracketNumber}`,
+        name: bracketName,
         status: 'draft',
         payment_status: 'pending',
       })

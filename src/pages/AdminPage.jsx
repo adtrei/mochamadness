@@ -376,12 +376,41 @@ export default function AdminPage() {
                   ))}
                 </div>
 
-                <div className="card overflow-hidden p-0">
+                {/* Mobile card list */}
+                <div className="sm:hidden space-y-3">
+                  {brackets.length === 0 && (
+                    <div className="card text-center py-8 text-gray-400 text-sm">No brackets yet.</div>
+                  )}
+                  {brackets.map(b => (
+                    <div key={b.id} className="card flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-mocha text-sm truncate">{b.name}</p>
+                        <p className="text-xs text-gray-400 truncate">
+                          {b.profiles?.display_name || b.profiles?.email || '—'}
+                        </p>
+                        <span className={`mt-1 inline-block badge-${b.status} text-xs`}>{b.status}</span>
+                      </div>
+                      <select
+                        value={b.payment_status || 'pending'}
+                        onChange={e => setPaymentStatusAndEmail(b.id, e.target.value)}
+                        disabled={saving === b.id}
+                        className="shrink-0 border border-gray-200 rounded-lg px-2 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-orange/50 disabled:opacity-50"
+                      >
+                        {PAYMENT_STATUS_OPTIONS.map(s => (
+                          <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop table */}
+                <div className="hidden sm:block card overflow-hidden p-0">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-mocha text-cream">
                         <th className="text-left px-4 py-3">Bracket</th>
-                        <th className="text-left px-4 py-3 hidden sm:table-cell">User</th>
+                        <th className="text-left px-4 py-3">User</th>
                         <th className="text-center px-4 py-3">Status</th>
                         <th className="text-center px-4 py-3">Payment</th>
                       </tr>
@@ -390,7 +419,7 @@ export default function AdminPage() {
                       {brackets.map((b, i) => (
                         <tr key={b.id} className={`border-t border-gray-100 ${i % 2 === 0 ? 'bg-white' : 'bg-cream/30'}`}>
                           <td className="px-4 py-3 font-medium">{b.name}</td>
-                          <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">
+                          <td className="px-4 py-3 text-gray-500">
                             {b.profiles?.display_name || b.profiles?.email || '—'}
                           </td>
                           <td className="px-4 py-3 text-center">
