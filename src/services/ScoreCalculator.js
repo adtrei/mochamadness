@@ -30,6 +30,38 @@ export const ScoreCalculator = {
   },
 
   /**
+   * Calculate the maximum points still achievable for a bracket.
+   * Counts correct picks from decided games + future picks where team is still alive.
+   * @param {Array} picks - array of { game_id, picked_winner_id }
+   * @param {Array} games - array of { id, round, team1_id, team2_id, winner_id }
+   * @returns {number} max possible score
+   */
+  calculateMaxPossible(picks, games) {
+    const gameMap = Object.fromEntries(games.map(g => [g.id, g]))
+
+    // Build set of eliminated team IDs (losers of decided games)
+    const eliminated = new Set()
+    games.forEach(g => {
+      if (!g.winner_id) return
+      const loserId = g.team1_id === g.winner_id ? g.team2_id : g.team1_id
+      if (loserId) eliminated.add(loserId)
+    })
+
+    let maxPossible = 0
+    for (const pick of picks) {
+      const game = gameMap[pick.game_id]
+      if (!game || !pick.picked_winner_id) continue
+      const pts = ROUND_POINTS[game.round] || 0
+      if (game.winner_id) {
+        if (pick.picked_winner_id === game.winner_id) maxPossible += pts
+      } else {
+        if (!eliminated.has(pick.picked_winner_id)) maxPossible += pts
+      }
+    }
+    return maxPossible
+  },
+
+  /**
    * Calculate scores for all brackets, returns sorted leaderboard entries.
    * @param {Array} brackets - array of { id, user_id, tiebreaker, picks: [...] }
    * @param {Array} games - array of game records
@@ -45,6 +77,7 @@ export const ScoreCalculator = {
       name: bracket.name,
       displayName: profileMap[bracket.user_id]?.display_name || 'Player',
       score: ScoreCalculator.calculateBracketScore(bracket.picks || [], games),
+      maxPossible: ScoreCalculator.calculateMaxPossible(bracket.picks || [], games),
       tiebreaker: bracket.tiebreaker,
     }))
 

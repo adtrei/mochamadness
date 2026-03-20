@@ -134,10 +134,17 @@ function TeamBtn({ team, isSelected, isLocked, resultState, onClick }) {
   )
 }
 
-// Determine result state for a single team button within a game
-function getResultState(team, gameWinnerId, userPickId) {
-  if (!gameWinnerId) return null  // game not decided yet
+// Determine result state for a single team button within a game.
+// eliminated: Set of team IDs that have already lost a decided game.
+function getResultState(team, gameWinnerId, userPickId, eliminated) {
   if (!team) return null
+  if (!gameWinnerId) {
+    // Game not yet played — but team may already be out from a prior round
+    if (eliminated?.has(team.id)) {
+      return userPickId === team.id ? 'wrong' : 'eliminated'
+    }
+    return null
+  }
   const won = team.id === gameWinnerId
   const picked = userPickId === team.id
   if (picked && won)  return 'correct'
@@ -149,8 +156,14 @@ function getResultState(team, gameWinnerId, userPickId) {
 // ---------------------------------------------------------------------------
 // ScoreSummary — shows current score and max possible (only once results exist)
 // ---------------------------------------------------------------------------
+// Total possible points across the whole tournament (192)
+const TOTAL_TOURNAMENT_PTS = Object.entries(ROUND_POINTS).reduce((s, [, pts], i) => {
+  const gameCounts = [32, 16, 8, 4, 2, 1]
+  return s + pts * gameCounts[i]
+}, 0)
+
 function ScoreSummary({ games, picks }) {
-  const { current, maxPossible, hasResults } = useMemo(() => {
+  const { current, pointsAtStake, maxPossible, hasResults } = useMemo(() => {
     const eliminated = new Set()
     games.forEach(g => {
       if (!g.winner_id) return
@@ -158,54 +171,59 @@ function ScoreSummary({ games, picks }) {
       if (loserId) eliminated.add(loserId)
     })
 
-    let current = 0, maxPossible = 0
+    let current = 0, pointsAtStake = 0, maxPossible = 0
     games.forEach(g => {
       const pickedId = picks[g.id]
       const pts = ROUND_POINTS[g.round] || 0
-      if (!pickedId) return
       if (g.winner_id) {
-        if (pickedId === g.winner_id) { current += pts; maxPossible += pts }
-        // wrong pick: pts lost
+        // Count decided games where user made a pick
+        if (pickedId) {
+          pointsAtStake += pts
+          if (pickedId === g.winner_id) {
+            current += pts
+            maxPossible += pts
+          }
+        }
       } else {
-        if (!eliminated.has(pickedId)) maxPossible += pts
+        // Future game — only add to max if pick is still alive
+        if (pickedId && !eliminated.has(pickedId)) maxPossible += pts
       }
     })
     const hasResults = games.some(g => g.winner_id)
-    return { current, maxPossible, hasResults }
+    return { current, pointsAtStake, maxPossible, hasResults }
   }, [games, picks])
 
   if (!hasResults) return null
 
-  const totalPossible = Object.values(ROUND_POINTS).reduce((s, p, i) => {
-    // R64=32 games, R32=16, S16=8, E8=4, FF=2, Champ=1 — points * game count
-    const counts = [32, 16, 8, 4, 2, 1]
-    return s + p * counts[i]
-  }, 0)
-
-  const pct = totalPossible > 0 ? Math.round((maxPossible / totalPossible) * 100) : 0
+  const accuracyPct = pointsAtStake > 0 ? Math.round((current / pointsAtStake) * 100) : 0
+  const maxColor = maxPossible > 100 ? 'text-green-600' : maxPossible > 50 ? 'text-orange' : 'text-red-500'
 
   return (
     <div className="flex items-center gap-4 bg-mocha/5 border border-mocha/10 rounded-xl px-4 py-3 mb-4 flex-wrap">
       <div>
-        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Current Score</p>
-        <p className="font-headline font-bold text-2xl text-mocha leading-tight">{current} <span className="text-sm font-normal text-gray-400">pts</span></p>
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Score So Far</p>
+        <p className="font-headline font-bold text-2xl text-mocha leading-tight">
+          {current}
+          <span className="text-sm font-normal text-gray-400"> of {pointsAtStake} pts</span>
+        </p>
       </div>
       <div className="flex-1 min-w-[80px]">
         <div className="flex justify-between text-[11px] text-gray-400 mb-1">
-          <span>Max possible</span>
-          <span>{pct}% of total</span>
+          <span>Accuracy so far</span>
+          <span>{accuracyPct}%</span>
         </div>
         <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${pct > 50 ? 'bg-green-400' : pct > 25 ? 'bg-orange' : 'bg-red-400'}`}
-            style={{ width: `${pct}%` }}
+            className={`h-full rounded-full transition-all ${accuracyPct >= 70 ? 'bg-green-400' : accuracyPct >= 40 ? 'bg-orange' : 'bg-red-400'}`}
+            style={{ width: `${accuracyPct}%` }}
           />
         </div>
       </div>
       <div className="text-right">
         <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Max Possible</p>
-        <p className={`font-headline font-bold text-2xl leading-tight ${pct > 50 ? 'text-green-600' : pct > 25 ? 'text-orange' : 'text-red-500'}`}>
-          {maxPossible} <span className="text-sm font-normal text-gray-400">pts</span>
+        <p className={`font-headline font-bold text-2xl leading-tight ${maxColor}`}>
+          {maxPossible}
+          <span className="text-sm font-normal text-gray-400"> of {TOTAL_TOURNAMENT_PTS}</span>
         </p>
       </div>
     </div>
@@ -215,7 +233,7 @@ function ScoreSummary({ games, picks }) {
 // ---------------------------------------------------------------------------
 // GameCard — a single matchup with result-aware team buttons
 // ---------------------------------------------------------------------------
-function GameCard({ game, contestants, picks, isLocked, onPick }) {
+function GameCard({ game, contestants, picks, isLocked, onPick, eliminated }) {
   if (!game) return null
   const { team1, team2 } = contestants?.[game.id] || {}
   const picked = picks[game.id]
@@ -227,8 +245,8 @@ function GameCard({ game, contestants, picks, isLocked, onPick }) {
         team={team1 ?? null}
         isSelected={!winnerId && picked === team1?.id}
         isLocked={isLocked}
-        resultState={getResultState(team1, winnerId, picked)}
-        onClick={() => !winnerId && team1 && onPick(game.id, team1.id)}
+        resultState={getResultState(team1, winnerId, picked, eliminated)}
+        onClick={() => !getResultState(team1, winnerId, picked, eliminated) && !winnerId && team1 && onPick(game.id, team1.id)}
       />
       <div className="flex items-center gap-1 px-2" style={{ height: 14 }}>
         <div className="flex-1 border-t border-gray-100" />
@@ -239,8 +257,8 @@ function GameCard({ game, contestants, picks, isLocked, onPick }) {
         team={team2 ?? null}
         isSelected={!winnerId && picked === team2?.id}
         isLocked={isLocked}
-        resultState={getResultState(team2, winnerId, picked)}
-        onClick={() => !winnerId && team2 && onPick(game.id, team2.id)}
+        resultState={getResultState(team2, winnerId, picked, eliminated)}
+        onClick={() => !getResultState(team2, winnerId, picked, eliminated) && !winnerId && team2 && onPick(game.id, team2.id)}
       />
     </div>
   )
@@ -249,19 +267,19 @@ function GameCard({ game, contestants, picks, isLocked, onPick }) {
 // ---------------------------------------------------------------------------
 // GameSlot — positions GameCard inside a fixed-height row for alignment
 // ---------------------------------------------------------------------------
-function GameSlot({ game, contestants, picks, isLocked, onPick, rowHeight }) {
+function GameSlot({ game, contestants, picks, isLocked, onPick, rowHeight, eliminated }) {
   if (!game) return null
 
   if (rowHeight) {
     return (
       <div className="flex items-center justify-center px-1" style={{ height: rowHeight }}>
-        <GameCard game={game} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
+        <GameCard game={game} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} eliminated={eliminated} />
       </div>
     )
   }
   return (
     <div className="px-1 mb-2">
-      <GameCard game={game} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
+      <GameCard game={game} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} eliminated={eliminated} />
     </div>
   )
 }
@@ -270,7 +288,7 @@ function GameSlot({ game, contestants, picks, isLocked, onPick, rowHeight }) {
 // HalfBracket — renders 4 round columns for two stacked regions
 // reverse=true mirrors the right side (E8 nearest center, R64 on outside)
 // ---------------------------------------------------------------------------
-function HalfBracket({ topRegion, bottomRegion, gamesByRound, contestants, picks, isLocked, onPick, reverse }) {
+function HalfBracket({ topRegion, bottomRegion, gamesByRound, contestants, picks, isLocked, onPick, reverse, eliminated }) {
   const cols = ROUNDS.map(r => {
     const rowH      = GAME_H * Math.pow(2, r - 1)
     const topGames  = (gamesByRound[r] || []).filter(g => g.region === topRegion)
@@ -296,7 +314,7 @@ function HalfBracket({ topRegion, bottomRegion, gamesByRound, contestants, picks
         </div>
         {topGames.map(game => (
           <GameSlot key={game.id} game={game} contestants={contestants} picks={picks}
-            isLocked={isLocked} onPick={onPick} rowHeight={rowH} />
+            isLocked={isLocked} onPick={onPick} rowHeight={rowH} eliminated={eliminated} />
         ))}
 
         {/* Bottom region */}
@@ -307,7 +325,7 @@ function HalfBracket({ topRegion, bottomRegion, gamesByRound, contestants, picks
         </div>
         {btmGames.map(game => (
           <GameSlot key={game.id} game={game} contestants={contestants} picks={picks}
-            isLocked={isLocked} onPick={onPick} rowHeight={rowH} />
+            isLocked={isLocked} onPick={onPick} rowHeight={rowH} eliminated={eliminated} />
         ))}
       </div>
     )
@@ -323,7 +341,7 @@ function HalfBracket({ topRegion, bottomRegion, gamesByRound, contestants, picks
 // ---------------------------------------------------------------------------
 // CenterColumn — Final Four + Championship, absolutely positioned
 // ---------------------------------------------------------------------------
-function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
+function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick, eliminated }) {
   const ff    = gamesByRound[5] || []
   const ff1   = ff[0]
   const ff2   = ff[1]
@@ -346,7 +364,7 @@ function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
               Final Four
             </span>
           </div>
-          <GameSlot game={ff1} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
+          <GameSlot game={ff1} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} eliminated={eliminated} />
         </div>
       )}
 
@@ -357,7 +375,7 @@ function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
               Championship
             </span>
           </div>
-          <GameSlot game={champ} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
+          <GameSlot game={champ} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} eliminated={eliminated} />
         </div>
       )}
 
@@ -368,7 +386,7 @@ function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
               Final Four
             </span>
           </div>
-          <GameSlot game={ff2} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} />
+          <GameSlot game={ff2} contestants={contestants} picks={picks} isLocked={isLocked} onPick={onPick} eliminated={eliminated} />
         </div>
       )}
     </div>
@@ -378,7 +396,7 @@ function CenterColumn({ gamesByRound, contestants, picks, isLocked, onPick }) {
 // ---------------------------------------------------------------------------
 // DesktopBracket — full ESPN-style layout with scroll hint + fade
 // ---------------------------------------------------------------------------
-function DesktopBracket({ gamesByRound, contestants, picks, isLocked, onPick }) {
+function DesktopBracket({ gamesByRound, contestants, picks, isLocked, onPick, eliminated }) {
   return (
     <div className="relative">
       {/* Region orientation legend */}
@@ -419,19 +437,19 @@ function DesktopBracket({ gamesByRound, contestants, picks, isLocked, onPick }) 
             topRegion="West" bottomRegion="Midwest"
             gamesByRound={gamesByRound} contestants={contestants}
             picks={picks} isLocked={isLocked} onPick={onPick}
-            reverse={false}
+            reverse={false} eliminated={eliminated}
           />
           <div className="shrink-0 self-stretch w-px bg-gray-200/70 mx-1" />
           <CenterColumn
             gamesByRound={gamesByRound} contestants={contestants}
-            picks={picks} isLocked={isLocked} onPick={onPick}
+            picks={picks} isLocked={isLocked} onPick={onPick} eliminated={eliminated}
           />
           <div className="shrink-0 self-stretch w-px bg-gray-200/70 mx-1" />
           <HalfBracket
             topRegion="East" bottomRegion="South"
             gamesByRound={gamesByRound} contestants={contestants}
             picks={picks} isLocked={isLocked} onPick={onPick}
-            reverse={true}
+            reverse={true} eliminated={eliminated}
           />
         </div>
       </div>
@@ -467,7 +485,7 @@ function PickProgress({ picks, games }) {
 // ---------------------------------------------------------------------------
 // MobileBracket — tab-per-round
 // ---------------------------------------------------------------------------
-function MobileBracket({ roundNums, gamesByRound, contestants, picks, isLocked, onPick }) {
+function MobileBracket({ roundNums, gamesByRound, contestants, picks, isLocked, onPick, eliminated }) {
   const [activeRound, setActiveRound] = useState(0)
 
   if (!roundNums.length) {
@@ -518,7 +536,7 @@ function MobileBracket({ roundNums, gamesByRound, contestants, picks, isLocked, 
             <div className="space-y-3">
               {rgGames.map(game => (
                 <GameSlot key={game.id} game={game} contestants={contestants}
-                  picks={picks} isLocked={isLocked} onPick={onPick} />
+                  picks={picks} isLocked={isLocked} onPick={onPick} eliminated={eliminated} />
               ))}
             </div>
           </div>
@@ -562,6 +580,15 @@ export default function BracketBuilder({
   const gamesByRound = groupGamesByRound(games)
   const roundNums    = Object.keys(gamesByRound).map(Number).sort((a, b) => a - b)
   const contestants  = useMemo(() => buildContestants(games, picks), [games, picks])
+  const eliminated   = useMemo(() => {
+    const s = new Set()
+    games.forEach(g => {
+      if (!g.winner_id) return
+      const loserId = g.team1_id === g.winner_id ? g.team2_id : g.team1_id
+      if (loserId) s.add(loserId)
+    })
+    return s
+  }, [games])
 
   return (
     <div>
@@ -587,6 +614,7 @@ export default function BracketBuilder({
           picks={picks}
           isLocked={isLocked}
           onPick={onPick}
+          eliminated={eliminated}
         />
       </div>
 
@@ -600,6 +628,7 @@ export default function BracketBuilder({
           picks={picks}
           isLocked={isLocked}
           onPick={onPick}
+          eliminated={eliminated}
         />
       </div>
 
