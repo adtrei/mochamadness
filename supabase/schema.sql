@@ -93,9 +93,10 @@ create policy "Users can update own profile" on profiles for update using (auth.
 alter table teams enable row level security;
 create policy "Public read teams" on teams for select using (true);
 
--- Games: public read
+-- Games: public read; admins can update results
 alter table games enable row level security;
 create policy "Public read games" on games for select using (true);
+create policy "Admin update games" on games for update using (is_admin());
 
 -- Brackets: users manage their own; admins manage all (for payment status updates etc.)
 -- submitted/locked brackets are publicly readable for the leaderboard
