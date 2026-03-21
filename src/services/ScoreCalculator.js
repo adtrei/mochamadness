@@ -71,18 +71,48 @@ export const ScoreCalculator = {
   buildLeaderboard(brackets, games, profiles) {
     const profileMap = Object.fromEntries(profiles.map(p => [p.id, p]))
 
-    const entries = brackets.map(bracket => ({
-      bracketId: bracket.id,
-      userId: bracket.user_id,
-      name: bracket.name,
-      displayName: profileMap[bracket.user_id]?.display_name || 'Player',
-      score: ScoreCalculator.calculateBracketScore(bracket.picks || [], games),
-      maxPossible: ScoreCalculator.calculateMaxPossible(bracket.picks || [], games),
-      tiebreaker: bracket.tiebreaker,
-    }))
+    // Build a flat team map from all game team references
+    const teamMap = {}
+    games.forEach(g => {
+      if (g.team1) teamMap[g.team1.id] = g.team1
+      if (g.team2) teamMap[g.team2.id] = g.team2
+    })
+
+    // Teams that have lost a decided game
+    const eliminated = new Set()
+    games.forEach(g => {
+      if (!g.winner_id) return
+      const loserId = g.team1_id === g.winner_id ? g.team2_id : g.team1_id
+      if (loserId) eliminated.add(loserId)
+    })
+
+    const champGame = games.find(g => g.round === 6)
+
+    const entries = brackets.map(bracket => {
+      const pickMap = Object.fromEntries(
+        (bracket.picks || []).map(p => [p.game_id, p.picked_winner_id])
+      )
+      const champPickId = champGame ? pickMap[champGame.id] : null
+      const champTeam = champPickId ? teamMap[champPickId] : null
+
+      return {
+        bracketId: bracket.id,
+        userId: bracket.user_id,
+        name: bracket.name,
+        displayName: profileMap[bracket.user_id]?.display_name || 'Player',
+        score: ScoreCalculator.calculateBracketScore(bracket.picks || [], games),
+        maxPossible: ScoreCalculator.calculateMaxPossible(bracket.picks || [], games),
+        tiebreaker: bracket.tiebreaker,
+        championPick: champTeam ? {
+          name: champTeam.name,
+          seed: champTeam.seed,
+          isEliminated: eliminated.has(champTeam.id),
+          isCorrect: champGame?.winner_id === champTeam.id,
+        } : null,
+      }
+    })
 
     // Sort: highest score first, then by tiebreaker (closest to actual champ score)
-    const champGame = games.find(g => g.round === 6)
     const actualChampScore = champGame?.tiebreaker_score || null
 
     entries.sort((a, b) => {

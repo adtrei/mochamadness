@@ -128,20 +128,23 @@ export default function BracketPage() {
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-4">
           <p className="text-red-600 font-medium">{error || 'Bracket not found.'}</p>
-          <button onClick={() => navigate('/dashboard')} className="btn-secondary">← Back to Dashboard</button>
+          <button onClick={() => navigate('/leaderboard')} className="btn-secondary">← Back to Leaderboard</button>
         </div>
       </div>
     )
   }
 
-  // Ownership guard: redirect if this bracket doesn't belong to the current user
-  if (session && bracket.user_id !== session.user.id) {
-    return <Navigate to="/dashboard" replace />
+  const isOwner = session?.user?.id === bracket.user_id
+  const isViewable = ['submitted', 'locked'].includes(bracket.status)
+
+  // Non-owners can only view submitted/locked brackets
+  if (!isOwner && !isViewable) {
+    return <Navigate to="/leaderboard" replace />
   }
 
-  const isLocked = bracket.status === 'locked'
+  const isLocked = bracket.status === 'locked' || !isOwner
   const isSubmitted = bracket.status === 'submitted'
-  const canSubmit = !isLocked && !isSubmitted
+  const canSubmit = isOwner && bracket.status !== 'locked' && !isSubmitted
   const missingPicks = games.length - Object.keys(picks).length
   const statusLabel = bracket.status
     ? bracket.status.charAt(0).toUpperCase() + bracket.status.slice(1)
@@ -153,10 +156,13 @@ export default function BracketPage() {
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
-            <button onClick={() => navigate('/dashboard')} className="text-sm text-caramel hover:underline mb-1 block">
-              ← Dashboard
+            <button
+              onClick={() => navigate(isOwner ? '/dashboard' : '/leaderboard')}
+              className="text-sm text-caramel hover:underline mb-1 block"
+            >
+              {isOwner ? '← Dashboard' : '← Leaderboard'}
             </button>
-            {editingName ? (
+            {isOwner && editingName ? (
               <input
                 ref={nameInputRef}
                 value={nameValue}
@@ -168,7 +174,7 @@ export default function BracketPage() {
             ) : (
               <div className="flex items-center gap-2 group">
                 <h1 className="font-headline font-bold text-3xl text-mocha">{bracket.name}</h1>
-                {!isLocked && (
+                {isOwner && !isLocked && (
                   <button
                     onClick={startEditName}
                     className="text-gray-400 hover:text-orange opacity-0 group-hover:opacity-100 transition-opacity"
@@ -181,15 +187,18 @@ export default function BracketPage() {
                 )}
               </div>
             )}
+            {!isOwner && (
+              <p className="text-xs text-gray-400 mt-0.5">Viewing read-only</p>
+            )}
           </div>
           <div className="flex items-center gap-3">
-            {saving && <span className="text-xs text-gray-400 italic">Saving…</span>}
+            {isOwner && saving && <span className="text-xs text-gray-400 italic">Saving…</span>}
             <span className={`badge-${bracket.status}`}>{statusLabel}</span>
           </div>
         </div>
 
-        {/* Payment reminder — shown for submitted AND locked unpaid brackets */}
-        {['submitted', 'locked'].includes(bracket.status) && bracket.payment_status !== 'complete' && (
+        {/* Payment reminder — shown only to the bracket owner */}
+        {isOwner && ['submitted', 'locked'].includes(bracket.status) && bracket.payment_status !== 'complete' && (
           <div className={`mb-6 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-sm
             ${bracket.payment_status === 'overdue'
               ? 'bg-red-50 border border-red-200 text-red-700'
