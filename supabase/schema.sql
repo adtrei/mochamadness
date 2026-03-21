@@ -98,6 +98,28 @@ alter table games enable row level security;
 create policy "Public read games" on games for select using (true);
 create policy "Admin update games" on games for update using (is_admin());
 
+-- Auto-propagate game winner into the next round's team slot
+-- Fires whenever admin sets winner_id on a game
+create or replace function propagate_winner()
+returns trigger language plpgsql security definer
+set search_path = public as $$
+begin
+  if new.winner_id is not null and new.next_game_id is not null then
+    if new.next_slot = 1 then
+      update games set team1_id = new.winner_id where id = new.next_game_id;
+    elsif new.next_slot = 2 then
+      update games set team2_id = new.winner_id where id = new.next_game_id;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_game_winner_set on games;
+create trigger on_game_winner_set
+  after update of winner_id on games
+  for each row execute function propagate_winner();
+
 -- Brackets: users manage their own; admins manage all (for payment status updates etc.)
 -- submitted/locked brackets are publicly readable for the leaderboard
 alter table brackets enable row level security;
