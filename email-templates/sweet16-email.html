@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mocha Madness 2026 — Sweet 16 Preview</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f4f1ea;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #2b241f;
+      }
+
+      table {
+        border-spacing: 0;
+        border-collapse: collapse;
+      }
+
+      td {
+        padding: 0;
+      }
+
+      img {
+        border: 0;
+        display: block;
+        line-height: 100%;
+        max-width: 100%;
+      }
+
+      .wrapper {
+        width: 100%;
+        table-layout: fixed;
+        background-color: #f4f1ea;
+        padding: 24px 0;
+      }
+
+      .main {
+        width: 100%;
+        max-width: 720px;
+        background-color: #fffaf5;
+        margin: 0 auto;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid #e7ddd1;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #4a2f23 0%, #7a5139 100%);
+        color: #ffffff;
+        padding: 36px 32px 28px;
+      }
+
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        opacity: 0.85;
+      }
+
+      .hero h1 {
+        margin: 10px 0 12px;
+        font-size: 34px;
+        line-height: 1.15;
+        font-weight: 800;
+      }
+
+      .hero p {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.6;
+        color: #f8ede4;
+      }
+
+      .content {
+        padding: 28px 32px 40px;
+      }
+
+      .section {
+        margin-bottom: 28px;
+      }
+
+      .section h2 {
+        margin: 0 0 14px;
+        font-size: 20px;
+        line-height: 1.3;
+        color: #4a2f23;
+      }
+
+      .section p {
+        margin: 0 0 14px;
+        font-size: 15px;
+        line-height: 1.7;
+        color: #3d332d;
+      }
+
+      .card {
+        background-color: #fcf6ef;
+        border: 1px solid #eadfce;
+        border-radius: 14px;
+        padding: 18px 18px 14px;
+        margin-bottom: 16px;
+      }
+
+      .standings-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+
+      .standings-table th {
+        background-color: #f3e7d8;
+        color: #4a2f23;
+        font-size: 12px;
+        line-height: 1.3;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 10px 12px;
+        text-align: left;
+      }
+
+      .standings-table td {
+        padding: 10px 12px;
+        border-top: 1px solid #eadfce;
+        font-size: 14px;
+        line-height: 1.45;
+        color: #3d332d;
+      }
+
+      .standings-table tr:nth-child(even) td {
+        background-color: #fffaf5;
+      }
+
+      .pill {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .pill-alive {
+        background-color: #dff5e7;
+        color: #166534;
+      }
+
+      .pill-eliminated {
+        background-color: #fde2e2;
+        color: #991b1b;
+      }
+
+      .list {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .list li {
+        margin-bottom: 10px;
+        font-size: 15px;
+        line-height: 1.7;
+        color: #3d332d;
+      }
+
+      .matchup {
+        margin-bottom: 14px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #eadfce;
+      }
+
+      .matchup:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .matchup strong {
+        color: #2b241f;
+      }
+
+      .subtle {
+        color: #6c5b50;
+      }
+
+      .footer {
+        background-color: #f7efe6;
+        border-top: 1px solid #eadfce;
+        padding: 20px 32px 28px;
+      }
+
+      .footer p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.7;
+        color: #5c4c41;
+      }
+
+      @media screen and (max-width: 640px) {
+        .hero,
+        .content,
+        .footer {
+          padding-left: 20px !important;
+          padding-right: 20px !important;
+        }
+
+        .hero h1 {
+          font-size: 28px !important;
+        }
+
+        .standings-table th,
+        .standings-table td {
+          padding-left: 8px !important;
+          padding-right: 8px !important;
+          font-size: 13px !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <table role="presentation" width="100%">
+        <tr>
+          <td align="center">
+            <table role="presentation" class="main" width="100%">
+              <tr>
+                <td class="hero">
+                  <div class="eyebrow">🏀 Mocha Madness 2026</div>
+                  <h1>Sweet 16 Preview</h1>
+                  <p>
+                    The Round of 32 is in the books. Here’s where the pool stands
+                    heading into the Sweet 16, what’s still in play, and which
+                    games this week could completely reshape the leaderboard.
+                  </p>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="content">
+                  <div class="section">
+                    <h2>📊 Current Standings</h2>
+                    <div class="card">
+                      <table role="presentation" class="standings-table">
+                        <thead>
+                          <tr>
+                            <th width="12%">Rank</th>
+                            <th width="48%">Bracket</th>
+                            <th width="18%">Points</th>
+                            <th width="22%">Max</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr><td>1</td><td>Max's Bracket 3</td><td>51</td><td>175</td></tr>
+                          <tr><td>2</td><td>Colby</td><td>49</td><td>169</td></tr>
+                          <tr><td>3</td><td>Max's Bracket 1</td><td>48</td><td>172</td></tr>
+                          <tr><td>4</td><td>Matt B</td><td>47</td><td>103</td></tr>
+                          <tr><td>5</td><td>Dov</td><td>46</td><td>158</td></tr>
+                          <tr><td>6</td><td>Max's Bracket 2</td><td>46</td><td>170</td></tr>
+                          <tr><td>7</td><td>Ken</td><td>45</td><td>145</td></tr>
+                          <tr><td>8</td><td>Zoe</td><td>45</td><td>169</td></tr>
+                          <tr><td>9</td><td>Adam #1</td><td>44</td><td>156</td></tr>
+                          <tr><td>10</td><td>Owen</td><td>42</td><td>126</td></tr>
+                          <tr><td>11</td><td>Kevin</td><td>42</td><td>126</td></tr>
+                          <tr><td>12</td><td>Ashley</td><td>41</td><td>149</td></tr>
+                          <tr><td>13</td><td>Adam #3</td><td>41</td><td>133</td></tr>
+                          <tr><td>14</td><td>Tyler</td><td>37</td><td>145</td></tr>
+                          <tr><td>15</td><td>Natalie</td><td>37</td><td>141</td></tr>
+                          <tr><td>16</td><td>Adam #2</td><td>32</td><td>120</td></tr>
+                          <tr><td>17</td><td>Mary</td><td>32</td><td>100</td></tr>
+                          <tr><td>18</td><td>Lambs</td><td>15</td><td>87</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p>
+                      The gap between <strong>1st and 6th is just 5 points</strong> —
+                      and with Sweet 16 games worth <strong>4 points each</strong>, a
+                      big Thursday or Friday could vault almost anyone in the top
+                      half into the lead.
+                    </p>
+                  </div>
+
+                  <div class="section">
+                    <h2>🏆 Champion Picks — Who’s Still Alive?</h2>
+                    <div class="card">
+                      <table role="presentation" class="standings-table">
+                        <thead>
+                          <tr>
+                            <th width="25%">Team</th>
+                            <th width="14%">Seed</th>
+                            <th width="41%">Picked By</th>
+                            <th width="20%">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Michigan</td>
+                            <td>1-seed</td>
+                            <td>Colby, Kevin, Adam #1</td>
+                            <td><span class="pill pill-alive">✅ Alive (3)</span></td>
+                          </tr>
+                          <tr>
+                            <td>Arizona</td>
+                            <td>1-seed</td>
+                            <td>Max B1, Tyler, Mary</td>
+                            <td><span class="pill pill-alive">✅ Alive (3)</span></td>
+                          </tr>
+                          <tr>
+                            <td>Duke</td>
+                            <td>1-seed</td>
+                            <td>Zoe, Owen</td>
+                            <td><span class="pill pill-alive">✅ Alive (2)</span></td>
+                          </tr>
+                          <tr>
+                            <td>Houston</td>
+                            <td>2-seed</td>
+                            <td>Max B3, Adam #3</td>
+                            <td><span class="pill pill-alive">✅ Alive (2)</span></td>
+                          </tr>
+                          <tr>
+                            <td>Iowa State</td>
+                            <td>2-seed</td>
+                            <td>Max B2, Ken</td>
+                            <td><span class="pill pill-alive">✅ Alive (2)</span></td>
+                          </tr>
+                          <tr>
+                            <td>Purdue</td>
+                            <td>2-seed</td>
+                            <td>Natalie, Lambs</td>
+                            <td><span class="pill pill-alive">✅ Alive (2)</span></td>
+                          </tr>
+                          <tr>
+                            <td>UConn</td>
+                            <td>2-seed</td>
+                            <td>Ashley</td>
+                            <td><span class="pill pill-alive">✅ Alive (1)</span></td>
+                          </tr>
+                          <tr>
+                            <td>Michigan State</td>
+                            <td>3-seed</td>
+                            <td>Dov</td>
+                            <td><span class="pill pill-alive">✅ Alive (1)</span></td>
+                          </tr>
+                          <tr>
+                            <td>Gonzaga</td>
+                            <td>3-seed</td>
+                            <td>Matt B</td>
+                            <td><span class="pill pill-eliminated">❌ Eliminated (1)</span></td>
+                          </tr>
+                          <tr>
+                            <td>Arkansas</td>
+                            <td>4-seed</td>
+                            <td>Adam #2</td>
+                            <td><span class="pill pill-alive">✅ Alive (1)</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p>
+                      <strong>17 of 18 brackets</strong> still have a living champion pick.
+                      Matt B’s Gonzaga fell to <strong>11-seed Texas</strong> in the Round
+                      of 32, capping his bracket at <strong>103 max points</strong> and
+                      making it difficult to keep pace as later-round points pile up.
+                    </p>
+                  </div>
+
+                  <div class="section">
+                    <h2>📉 Ceilings Tell the Real Story</h2>
+                    <div class="card">
+                      <ul class="list">
+                        <li>
+                          <strong>Lambs (87 max), Mary (100 max), and Matt B (103 max)</strong>
+                          would need near-perfect remaining picks just to approach the current leaders.
+                        </li>
+                        <li>
+                          <strong>Owen (126 max) and Kevin (126 max)</strong> are still alive,
+                          but their upside is limited compared to the top contenders.
+                        </li>
+                        <li>
+                          The true race likely runs through the brackets sitting at
+                          <strong>140+ max points</strong> — roughly a dozen entries still
+                          with a realistic path to the title.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div class="section">
+                    <h2>🔥 Biggest Story: Iowa Topples Defending Champion Florida</h2>
+                    <p>
+                      <strong>9-seed Iowa</strong> hit a go-ahead 3-pointer with
+                      <strong>4.5 seconds left</strong> to stun <strong>1-seed Florida 73–72</strong>
+                      in Tampa, knocking the defending national champions out in the Round of 32.
+                    </p>
+                    <p>
+                      It was the upset of the tournament so far, and only the
+                      <strong>ninth time since 1979</strong> that a 9-seed has beaten a
+                      1-seed. Iowa reaching the Sweet 16 wasn’t in most brackets’
+                      plans, so the damage spread broadly across the field.
+                    </p>
+                  </div>
+
+                  <div class="section">
+                    <h2>⚠️ Injury Watch: Joshua Jefferson (Iowa State)</h2>
+                    <p>
+                      Iowa State’s All-American forward
+                      <strong>sprained his ankle in the first round</strong> and watched
+                      the Kentucky game in a walking boot. The Cyclones still rolled
+                      <strong>82–63</strong> behind Tamin Lipsey’s <strong>26 points and 10 assists</strong>,
+                      but Jefferson’s availability for the Sweet 16 is a major question.
+                    </p>
+                    <p>
+                      That matters a lot for <strong>Ken</strong> and <strong>Max B2</strong>,
+                      who both need Iowa State to stay alive as their champion pick.
+                    </p>
+                  </div>
+
+                  <div class="section">
+                    <h2>🗓️ Sweet 16 — Games That Will Reshape the Leaderboard</h2>
+
+                    <div class="card">
+                      <p style="margin-bottom: 10px;">
+                        <strong>Thursday, March 26</strong>
+                        <span class="subtle">(Houston &amp; San Jose)</span>
+                      </p>
+                      <ul class="list">
+                        <li>(9) Iowa vs (4) Nebraska — South</li>
+                        <li>(3) Illinois vs (2) Houston — South</li>
+                        <li>(1) Arizona vs (4) Arkansas — West</li>
+                        <li>(11) Texas vs (2) Purdue — West</li>
+                      </ul>
+                    </div>
+
+                    <div class="card">
+                      <p style="margin-bottom: 10px;">
+                        <strong>Friday, March 27</strong>
+                        <span class="subtle">(Chicago &amp; Washington, D.C.)</span>
+                      </p>
+                      <ul class="list">
+                        <li>(1) Michigan vs (4) Alabama — Midwest</li>
+                        <li>(6) Tennessee vs (2) Iowa State — Midwest</li>
+                        <li>(1) Duke vs (5) St. John’s — East</li>
+                        <li>(3) Michigan State vs (2) UConn — East</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div class="section">
+                    <h2>🔑 Key Matchups for the Pool</h2>
+                    <div class="card">
+                      <div class="matchup">
+                        <p>
+                          <strong>Michigan vs Alabama (Friday)</strong><br />
+                          Three brackets — <strong>Colby, Kevin, and Adam #1</strong> —
+                          need Michigan to keep rolling. Michigan looked dominant in the
+                          first weekend, beating Howard <strong>101–80</strong> and Saint
+                          Louis <strong>95–72</strong>. Alabama is dangerous, but Michigan
+                          enters as the favorite.
+                        </p>
+                      </div>
+
+                      <div class="matchup">
+                        <p>
+                          <strong>Duke vs St. John’s (Friday)</strong><br />
+                          Two champion picks — <strong>Zoe and Owen</strong> — ride on Duke,
+                          and several other brackets need the Blue Devils in the Elite 8.
+                          Duke survived a first-round scare against Siena, then rolled TCU
+                          <strong>81–58</strong>. St. John’s is very real after knocking off Kansas.
+                        </p>
+                      </div>
+
+                      <div class="matchup">
+                        <p>
+                          <strong>Iowa State vs Tennessee (Friday)</strong><br />
+                          <strong>Max B2 and Ken</strong> both need Iowa State to survive,
+                          likely without Jefferson at full strength. Tennessee upset Virginia
+                          and has been playing top-10 defense for the past six weeks. This may
+                          be the most dramatic game of the round.
+                        </p>
+                      </div>
+
+                      <div class="matchup">
+                        <p>
+                          <strong>Houston vs Illinois (Thursday)</strong><br />
+                          Two champion picks — <strong>Max B3 and Adam #3</strong> — need
+                          Houston here. Houston has steamrolled opponents so far
+                          (<strong>78–47 over Idaho</strong>, <strong>88–57 over Texas A&amp;M</strong>)
+                          and gets the Sweet 16 at the Toyota Center in Houston — a very real
+                          home-court edge.
+                        </p>
+                      </div>
+
+                      <div class="matchup">
+                        <p>
+                          <strong>Arizona vs Arkansas (Thursday)</strong><br />
+                          Three brackets — <strong>Max B1, Tyler, and Mary</strong> — are
+                          hanging their hopes on Arizona. The Wildcats have looked sharp
+                          (<strong>92–58 over LIU</strong>, <strong>78–66 over Utah State</strong>),
+                          but Arkansas is hot after winning the SEC tournament and extending
+                          its winning streak to six.
+                        </p>
+                      </div>
+
+                      <div class="matchup">
+                        <p>
+                          <strong>Michigan State vs UConn (Friday)</strong><br />
+                          A pure pedigree showdown. <strong>Dov</strong> needs Michigan State.
+                          <strong>Ashley</strong> needs UConn. UConn won back-to-back titles in
+                          2023 and 2024, and Dan Hurley’s group is chasing a third championship
+                          in four years. Michigan State has been one of the best defensive teams
+                          in the country.
+                        </p>
+                      </div>
+
+                      <div class="matchup">
+                        <p>
+                          <strong>Purdue vs Texas (Thursday)</strong><br />
+                          <strong>Natalie and Lambs</strong> need Purdue to stop Texas’s Cinderella
+                          run. Texas came through the First Four, upset BYU, and knocked off
+                          <strong>3-seed Gonzaga</strong> to reach the Sweet 16 as an 11-seed.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="section">
+                    <h2>📈 Scenarios to Watch</h2>
+                    <div class="card">
+                      <ul class="list">
+                        <li>
+                          <strong>If chalk holds across the Sweet 16:</strong> the top of the
+                          leaderboard stays jammed, and the Elite 8 becomes a total bloodbath.
+                        </li>
+                        <li>
+                          <strong>If Michigan falls:</strong> three brackets lose their champion,
+                          wiping <strong>32 points</strong> from each ceiling and blowing up the
+                          Michigan-heavy middle of the pack.
+                        </li>
+                        <li>
+                          <strong>If Iowa State falls:</strong> two champion picks go down, while
+                          current leaders like <strong>Max B3 (Houston)</strong> and
+                          <strong>Colby (Michigan)</strong> gain breathing room.
+                        </li>
+                      </ul>
+                    </div>
+                    <p>
+                      The <strong>$252 first prize</strong> is absolutely still up for grabs.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="footer">
+                  <p>
+                    Good luck this week — things are about to get serious. 🎯
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

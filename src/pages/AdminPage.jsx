@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar'
 import { BracketService } from '../services/BracketService'
 import { supabase } from '../services/supabase'
 import { EmailService } from '../services/EmailService'
-import sweet16Html from '../../email-templates/Sweet 16 Email.html?raw'
+import sweet16Html from '../../email-templates/sweet16-email.html?raw'
 
 const TABS = ['Games', 'Payments', 'Users', 'Brackets', 'Emails']
 
