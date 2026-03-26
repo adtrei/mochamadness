@@ -44,6 +44,10 @@ export const EmailService = {
     })
   },
 
+  blast({ subject, html }) {
+    return callFunction('send-email', { type: 'blast', subject, html })
+  },
+
   deleteUser(userId) {
     return callFunction('delete-user', { userId })
   },

@@ -3,8 +3,18 @@ import Navbar from '../components/Navbar'
 import { BracketService } from '../services/BracketService'
 import { supabase } from '../services/supabase'
 import { EmailService } from '../services/EmailService'
+import sweet16Html from '../../email-templates/Sweet 16 Email.html?raw'
 
-const TABS = ['Games', 'Payments', 'Users', 'Brackets']
+const TABS = ['Games', 'Payments', 'Users', 'Brackets', 'Emails']
+
+const BLAST_TEMPLATES = [
+  {
+    id: 'sweet16',
+    label: 'Sweet 16 Preview',
+    subject: "Mocha Madness 2026: Who's Still Alive? Sweet 16 Preview",
+    html: sweet16Html,
+  },
+]
 
 const PAYMENT_STATUS_OPTIONS = ['pending', 'overdue', 'complete']
 
@@ -25,6 +35,9 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(null)
   const [message, setMessage] = useState({ text: '', type: 'success' })
   const [lockingAll, setLockingAll] = useState(false)
+  const [blastTarget, setBlastTarget] = useState(null)   // BLAST_TEMPLATES entry
+  const [blasting, setBlasting] = useState(false)
+  const [blastResult, setBlastResult] = useState(null)   // { sent, failed }
   const [deleteTarget, setDeleteTarget] = useState(null)   // { id, email, name }
   const [deleteStep, setDeleteStep] = useState(1)          // 1 = confirm, 2 = type email
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('')
@@ -146,6 +159,21 @@ export default function AdminPage() {
       flash('Error: ' + err.message, 'error')
     } finally {
       setLockingAll(false)
+    }
+  }
+
+  async function sendBlast(template) {
+    setBlasting(true)
+    setBlastResult(null)
+    try {
+      const result = await EmailService.blast({ subject: template.subject, html: template.html })
+      setBlastResult({ sent: result.sent, failed: result.failed })
+      flash(`Sent to ${result.sent} participant${result.sent !== 1 ? 's' : ''}${result.failed ? ` (${result.failed} failed)` : ''}.`)
+    } catch (err) {
+      flash('Blast failed: ' + err.message, 'error')
+    } finally {
+      setBlasting(false)
+      setBlastTarget(null)
     }
   }
 
@@ -495,6 +523,40 @@ export default function AdminPage() {
               </div>
             )}
 
+            {/* ── EMAILS TAB ── */}
+            {activeTab === 'Emails' && (
+              <div className="space-y-4">
+                <div className="card">
+                  <p className="font-headline font-bold text-mocha mb-1">Email Blasts</p>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Send a broadcast to all participants with submitted or locked brackets.
+                  </p>
+                  <div className="space-y-3">
+                    {BLAST_TEMPLATES.map(t => (
+                      <div key={t.id} className="flex items-center justify-between gap-4 p-3 rounded-xl border border-gray-100 bg-gray-50/50 flex-wrap">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm text-mocha">{t.label}</p>
+                          <p className="text-xs text-gray-400 truncate mt-0.5">{t.subject}</p>
+                        </div>
+                        <button
+                          onClick={() => setBlastTarget(t)}
+                          disabled={blasting}
+                          className="btn-primary text-sm py-1.5 px-4 shrink-0 disabled:opacity-50"
+                        >
+                          Send to All →
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {blastResult && (
+                  <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
+                    Last blast: <strong>{blastResult.sent}</strong> sent{blastResult.failed > 0 && <>, <strong>{blastResult.failed}</strong> failed</>}.
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* ── BRACKETS TAB ── */}
             {activeTab === 'Brackets' && (
               <div className="card overflow-hidden p-0">
@@ -532,6 +594,35 @@ export default function AdminPage() {
           </>
         )}
       </main>
+
+      {/* ── Blast Confirm Modal ── */}
+      {blastTarget && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 bg-orange/10 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">📧</div>
+              <h2 className="font-headline font-bold text-xl text-mocha mb-1">Send email blast?</h2>
+              <p className="text-sm text-gray-500 mb-1"><strong className="text-mocha">{blastTarget.label}</strong></p>
+              <p className="text-xs text-gray-400">{blastTarget.subject}</p>
+            </div>
+            <div className="bg-orange/5 border border-orange/20 rounded-lg px-3 py-2 text-xs text-orange-900 mb-5">
+              This will send to every participant with a submitted or locked bracket. This cannot be undone.
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setBlastTarget(null)} disabled={blasting} className="flex-1 btn-secondary py-2 text-sm">
+                Cancel
+              </button>
+              <button
+                onClick={() => sendBlast(blastTarget)}
+                disabled={blasting}
+                className="flex-1 btn-primary py-2 text-sm disabled:opacity-50"
+              >
+                {blasting ? 'Sending…' : 'Send Now'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Delete User Modal ── */}
       {deleteTarget && (

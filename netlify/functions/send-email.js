@@ -2,7 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = 'Mocha Madness <noreply@mochamadness.io>'
+const FROM       = 'Mocha Madness <noreply@mochamadness.io>'
+const FROM_BLAST = 'Mocha Madness <meow@mochamadness.io>'
 
 // ── Template generators ────────────────────────────────────────────────────
 
@@ -222,6 +223,38 @@ export const handler = async (event) => {
     }
   }
 
+  // ── Blast: admin-only bulk send to all participants ──────────────────────
+  if (type === 'blast') {
+    const { data: bracketsData } = await adminClient
+      .from('brackets')
+      .select('user_id')
+      .in('status', ['submitted', 'locked'])
+
+    const userIds = [...new Set((bracketsData || []).map(b => b.user_id))]
+
+    const { data: profilesData } = await adminClient
+      .from('profiles')
+      .select('email')
+      .in('id', userIds)
+      .not('email', 'is', null)
+
+    const recipients = [...new Set((profilesData || []).map(p => p.email).filter(Boolean))]
+
+    let sent = 0, failed = 0
+    for (const recipient of recipients) {
+      const { error: sendErr } = await resend.emails.send({
+        from: FROM_BLAST,
+        to: recipient,
+        subject,
+        html: data.html,
+      })
+      sendErr ? failed++ : sent++
+    }
+
+    return { statusCode: 200, body: JSON.stringify({ success: true, sent, failed }) }
+  }
+
+  // ── Transactional emails ──────────────────────────────────────────────────
   let html
   if (type === 'bracket-submitted') {
     html = bracketSubmittedHtml(data)
